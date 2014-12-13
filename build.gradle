@@ -1,0 +1,52 @@
+buildscript {
+  repositories {
+    jcenter()
+    maven { url 'https://oss.jfrog.org/artifactory/repo' }
+  }
+  dependencies {
+    classpath 'io.ratpack:ratpack-gradle:0.9.11'
+  }
+}
+
+if (!JavaVersion.current().java8Compatible) {
+  throw new IllegalStateException("Must be built with Java 8 or higher")
+}
+
+// The “ratpack” plugin applies the “application” plugin, making it easy to create a standalone application.
+// See: http://gradle.org/docs/current/userguide/application_plugin.html
+apply plugin: "io.ratpack.ratpack-java"
+
+repositories {
+  jcenter()
+  maven { url 'https://oss.jfrog.org/artifactory/repo' }
+}
+
+dependencies {
+  // SpringLoaded enables runtime hot reloading.
+  // It is not part of the app runtime and is not shipped in the distribution.
+  springloaded "org.springframework:springloaded:1.2.1.RELEASE"
+
+  // This is a Guice ratpack app
+  compile ratpack.dependency("guice")
+
+  testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+}
+
+// The “ratpack” plugin is IDEA aware.
+// It will create a run configuration in IDEA to launch your app in your IDE, with hot reloading.
+apply plugin: "idea"
+
+idea {
+  project {
+    //use JDK 1.8 in idea
+    jdkName "1.8"
+    languageLevel "1.8"
+    ipr {
+      withXml { provider ->
+        def node = provider.asNode()
+        //configure git support for the project in idea
+        node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
+      }
+    }
+  }
+}
